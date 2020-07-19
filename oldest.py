@@ -14,10 +14,10 @@ from additional.objects import start_main_bot, properties_json, send_dev_message
 
 stamp1 = time_now()
 token = '502333466:AAEFuevLp7AGLxqO3sk3bpVGaNf5Vlf9Dq4'
-temp_prefix = 'temps-'
+temp_prefix = 'temp-'
 server_dict = {}
 idMe = 396978030
-limit = 10
+limit = 50000
 # ====================================================================================
 
 
