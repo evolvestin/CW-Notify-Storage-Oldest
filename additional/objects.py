@@ -358,23 +358,28 @@ def executive(logs):
     name = re.sub('[<>]', '', str(stack[len(stack) - 1][3]))
     full_name = bold(bot_name) + '(' + code(host) + ').' + bold(name + '()')
     error_raw = traceback.format_exception(exc_type, exc_value, exc_traceback)
-    search_retry = 'Retry in (\d+) seconds|"Too Many Requests: retry after (\d+)"'
+    search_retry_pattern = 'Retry in (\d+) seconds|"Too Many Requests: retry after (\d+)"'
+    search_fails_pattern = 'Failed to establish a new connection'
     error = 'Вылет ' + full_name + '\n\n'
     for i in error_raw:
         error += html_secure(i)
-        search = re.search(search_retry, str(i))
-        if search:
-            retry = int(search.group(1)) + 10
+        search_retry = re.search(search_retry_pattern, str(i))
+        search_fails = re.search(search_fails_pattern, str(i))
+        if search_retry:
+            retry = int(search_retry.group(1)) + 10
+        if search_fails:
+            retry = 10
 
     if logs is None:
         caller = inspect.currentframe().f_back.f_back
         func_name = inspect.getframeinfo(caller)[2]
         for a in caller.f_locals:
-            func_locals.append(caller.f_locals.get(a))
+            if a.startswith('host'):
+                func_locals.append(caller.f_locals.get(a))
         func = caller.f_locals.get(func_name, caller.f_globals.get(func_name))
     else:
         retry = 0
-        send_json(logs, name, error)
+    send_json(logs, name, error)
     return retry, func, func_locals, full_name
 
 
