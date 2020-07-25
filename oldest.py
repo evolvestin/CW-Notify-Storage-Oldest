@@ -86,23 +86,22 @@ async def repeat_all_messages(message: types.Message):
             await bot.send_message(message['chat']['id'], 'Я работаю', reply_markup=None)
 
 
-async def oldest(server):
-    old, client1, old_values, temp_worksheet, spreadsheet_files = starting_old_creation(server)
-    print(old, client1, len(old_values), temp_worksheet, spreadsheet_files)
+async def oldest(host_server):
+    old, client1, old_values, temp_worksheet, spreadsheet_files = starting_old_creation(host_server)
     if old and spreadsheet_files:
         old += 1
-        if temp_prefix + server['storage'] not in spreadsheet_files:
-            create_temp_spreadsheet(client1, server['storage'])
+        if temp_prefix + host_server['storage'] not in spreadsheet_files:
+            create_temp_spreadsheet(client1, host_server['storage'])
         while True:
             try:
-                print_text = server['channel'] + str(old)
+                print_text = host_server['channel'] + str(old)
                 text = requests.get(print_text + '?embed=1')
                 response = former(text.text)
                 if response.startswith('False'):
                     await asyncio.sleep(8)
                 else:
                     client1, old_values, temp_worksheet = await \
-                        google(client1, old_values, temp_worksheet, server, response)
+                        google(client1, old_values, temp_worksheet, host_server, response)
                     old += 1
                     await asyncio.sleep(1.2)
                     printer(print_text + ' Добавил в google старый лот')
@@ -111,7 +110,7 @@ async def oldest(server):
     else:
         s_name = 'Undefined'
         for name in server_dict:
-            if server_dict[name] == server:
+            if server_dict[name] == host_server:
                 s_name = name
         send_dev_message('Нет подключения к google.\nНе запущен oldest(' + s_name + ')')
 
