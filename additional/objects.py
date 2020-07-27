@@ -99,21 +99,6 @@ def send_dev_message(text, tag=code, good=False):
     return message
 
 
-def printer(printer_text):
-    parameter = 'w'
-    directory = os.listdir('.')
-    thread_name = inspect.stack()[1][3]
-    log_print_text = thread_name + '() [' + str(_thread.get_ident()) + '] ' + str(printer_text)
-    file_print_text = log_time() + log_print_text
-    if log_file_name in directory:
-        file_print_text = '\n' + file_print_text
-        parameter = 'a'
-    file = open(log_file_name, parameter)
-    file.write(file_print_text)
-    print(log_print_text)
-    file.close()
-
-
 def query(link, string):
     response = requests.get(link + '?embed=1')
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -214,6 +199,30 @@ def log_time(stamp=None, tag=None, gmt=3, form=None):
     if form is None:
         response += ' '
     return response
+
+
+def printer(printer_text):
+    parameter = 'w'
+    thread_name = ''
+    directory = os.listdir('.')
+    stack = inspect.stack()
+    if len(stack) <= 4:
+        stack = list(reversed(stack))
+    for i in stack:
+        if i[3] not in ['<module>', 'printer']:
+            thread_name += i[3] + '.'
+            if len(stack) > 4:
+                break
+    thread_name = re.sub('[<>]', '', thread_name[:-1])
+    log_print_text = thread_name + '() [' + str(_thread.get_ident()) + '] ' + str(printer_text)
+    file_print_text = log_time() + log_print_text
+    if log_file_name in directory:
+        file_print_text = '\n' + file_print_text
+        parameter = 'a'
+    file = open(log_file_name, parameter)
+    file.write(file_print_text)
+    print(log_print_text)
+    file.close()
 
 
 def properties_json(sheet_id, limit, option=None):
@@ -334,9 +343,9 @@ def send_json(logs, name, error):
             caption = error
         doc = open(name + '.json', 'rb')
         bot_error.send_document(idDevCentre, doc, caption=caption, parse_mode='HTML')
-    if (json_text == '' and len(error) <= 1024) or (1024 < len(error) <= 4096):
+    if (json_text == '' and 0 < len(error) <= 1024) or (1024 < len(error) <= 4096):
         bot_error.send_message(idDevCentre, error, parse_mode='HTML')
-    if len(error) > 4096:
+    elif len(error) > 4096:
         separator = 4096
         split_sep = len(error) // separator
         split_mod = len(error) / separator - len(error) // separator
@@ -354,21 +363,23 @@ def executive(logs):
     func_locals = []
     stack = inspect.stack()
     bot_name, host = get_bot_name()
+    name = re.sub('[<>]', '', str(stack[-1][3]))
     exc_type, exc_value, exc_traceback = sys.exc_info()
-    name = re.sub('[<>]', '', str(stack[len(stack) - 1][3]))
     full_name = bold(bot_name) + '(' + code(host) + ').' + bold(name + '()')
     error_raw = traceback.format_exception(exc_type, exc_value, exc_traceback)
     search_retry_pattern = 'Retry in (\d+) seconds|"Too Many Requests: retry after (\d+)"'
     search_fails_pattern = 'Failed to establish a new connection'
+    printer('Вылет ' + full_name + error_raw[-1])
     error = 'Вылет ' + full_name + '\n\n'
     for i in error_raw:
         error += html_secure(i)
-        search_retry = re.search(search_retry_pattern, str(i))
-        search_fails = re.search(search_fails_pattern, str(i))
-        if search_retry:
-            retry = int(search_retry.group(1)) + 10
-        if search_fails:
-            retry = 10
+    search_retry = re.search(search_retry_pattern, str(error))
+    search_fails = re.search(search_fails_pattern, str(error))
+    if search_retry:
+        retry = int(search_retry.group(1)) + 10
+    if search_fails:
+        retry = 10
+        error = ''
 
     if logs is None:
         caller = inspect.currentframe().f_back.f_back
