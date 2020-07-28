@@ -368,8 +368,8 @@ def executive(logs):
     full_name = bold(bot_name) + '(' + code(host) + ').' + bold(name + '()')
     error_raw = traceback.format_exception(exc_type, exc_value, exc_traceback)
     search_retry_pattern = 'Retry in (\d+) seconds|"Too Many Requests: retry after (\d+)"'
+    printer('Вылет ' + re.sub('<.*?>', '', full_name) + ' ' + error_raw[-1])
     search_fails_pattern = 'Failed to establish a new connection'
-    printer('Вылет ' + full_name + error_raw[-1])
     error = 'Вылет ' + full_name + '\n\n'
     for i in error_raw:
         error += html_secure(i)
