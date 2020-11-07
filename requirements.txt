@@ -1,12 +1,5 @@
 aiogram==2.8
-Pillow==7.0.0
-heroku3==4.2.1
-gspread==3.6.0
+gspread>=3.6.0
 requests>=2.20.0
-telegraph==1.4.0
-certifi>=2019.3.9
-unidecode==1.0.23
+e-objects>=1.0.7
 beautifulsoup4==4.8.0
-more-itertools==8.2.0
-requests-futures==1.0.0
-pyTelegramBotAPI==3.6.6
