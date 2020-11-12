@@ -11,7 +11,6 @@ from bs4 import BeautifulSoup
 from aiogram.utils import executor
 from objects import italic, stamper
 from aiogram.dispatcher import Dispatcher
-from objects import async_exec as executive
 
 stamp1 = objects.time_now()
 objects.environmental_files()
@@ -43,10 +42,11 @@ def starting_server_dict_creation():
                 server_dict[resource[0]]['storage'] = resource[options.index(option)]
 
 
-bot = objects.start_main_bot('async', os.environ['TOKEN'])
+Auth = objects.AuthCentre(os.environ['TOKEN'])
+bot = Auth.start_main_bot('async')
 starting_server_dict_creation()
 dispatcher = Dispatcher(bot)
-objects.start_message(os.environ['TOKEN'], stamp1)
+Auth.start_message(stamp1)
 # ========================================================================================================
 
 
@@ -156,8 +156,8 @@ async def oldest(server):
                             client = gspread.service_account(server['json1'])
                             temp_spreadsheet = client.open(temp_prefix + storage_name)
                             temp_values = temp_spreadsheet.worksheet('old').col_values(1)
-                            dev = objects.send_dev_message('Устраняем таблицу', tag=italic, good=True)
 
+                            dev = Auth.send_dev_message('Устраняем таблицу', tag=italic)
                             main_spreadsheet = client.open(storage_name)
                             for w in main_spreadsheet.worksheets():
                                 if number_secure(w.title):
@@ -168,11 +168,11 @@ async def oldest(server):
                             main_spreadsheet.batch_update(
                                 objects.properties_json(main_worksheet.id, limit, temp_values))
 
-                            dev = objects.edit_dev_message(dev, italic(
-                                '\n— Новая: ' + storage_name + '/' + str(worksheet_number + 1)))
+                            dev_edited = Auth.edit_dev_message(dev, italic('\n— Новая: ' + storage_name +
+                                                                           '/' + str(worksheet_number + 1)))
                             create_temp_spreadsheet(client, storage_name, [response])
                             client.del_spreadsheet(temp_spreadsheet.id)
-                            objects.edit_dev_message(dev, italic('\n— Успешно'))
+                            Auth.edit_dev_message(dev_edited, italic('\n— Успешно'))
                             old_values = [response]
                             await asyncio.sleep(30)
                         else:
@@ -184,13 +184,13 @@ async def oldest(server):
                     await asyncio.sleep(1.2)
                     objects.printer(print_text + ' Добавил в google старый лот')
             except IndexError and Exception:
-                await executive()
+                await Auth.async_exec()
     else:
         s_name = 'Undefined'
         for name in server_dict:
             if server_dict[name] == server:
                 s_name = name
-        objects.send_dev_message('Нет подключения к google.\nНе запущен oldest(' + s_name + ')')
+        Auth.send_dev_message('Нет подключения к google.\nНе запущен CW-Notify-Storage-Oldest(' + s_name + ')')
 
 
 if __name__ == '__main__':

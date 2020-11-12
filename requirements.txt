@@ -1,5 +1,5 @@
-aiogram==2.8
+aiogram==2.9
 gspread>=3.6.0
 requests>=2.20.0
-e-objects>=1.0.7
+e-objects>=1.2.0
 beautifulsoup4==4.8.0
