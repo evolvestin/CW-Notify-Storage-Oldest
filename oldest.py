@@ -3,13 +3,13 @@ import os
 import re
 import glob
 import asyncio
-import objects
 import gspread
 import requests
 from aiogram import types
+import functions as objects
 from bs4 import BeautifulSoup
 from aiogram.utils import executor
-from objects import italic, stamper
+from functions import italic, stamper
 from aiogram.dispatcher import Dispatcher
 
 stamp1 = objects.time_now()
@@ -18,7 +18,7 @@ temp_prefix = 'temp-'
 server_dict = {}
 idMe = 396978030
 limit = 50000
-# ====================================================================================
+# ========================================================================================================
 
 
 def starting_server_dict_creation():
@@ -193,7 +193,13 @@ async def oldest(server):
         Auth.send_dev_message('Нет подключения к google.\nНе запущен CW-Notify-Storage-Oldest(' + s_name + ')')
 
 
-if __name__ == '__main__':
+def start():
+    loop = asyncio.new_event_loop()
     for server_name in server_dict:
-        dispatcher.loop.create_task(oldest(server_dict[server_name]))
+        loop.create_task(oldest(server_dict[server_name]))
+    asyncio.set_event_loop(loop)
     executor.start_polling(dispatcher)
+
+
+if __name__ == '__main__':
+    start()
