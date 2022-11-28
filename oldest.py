@@ -101,6 +101,7 @@ async def repeat_all_messages(message: types.Message):
 
 
 async def oldest(server):
+    print('Сервер', server)
     old = 0
     old_values = []
     temp_worksheet = None
