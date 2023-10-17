@@ -2,6 +2,8 @@
 
 ## Change Log
 
+`17.10.2023` - Канал [ChatWarsAuction](https://t.me/ChatWarsAuction) перестал быть доступен для парсинга. Переход на парсинг с помощью Telethon. Основной скрипт теперь в main.py, oldest.py сохранён для истории.
+
 `28.11.2022` - e-objects 1.2.0 перенесена в functions.py. Создана функция start() для запуска на сервере.
 
 ## Парсер игровых Telegram каналов 
@@ -45,9 +47,9 @@
 
 Ниже привожу ссылки на таблицы с лотами, но решил пока их оставить открытыми только для себя. Потом когда-нибудь опубликую.
 
-Название | Описание
--------- | --------
-[eu_storage](https://docs.google.com/spreadsheets/d/14GN4rECr8fTkYWvPXhe2OWjj1REvICKi175QJLmbjYk/edit?usp=sharing) | База лотов EU сервера
-[ru_storage](https://docs.google.com/spreadsheets/d/1zb_Vi1X_wjrg6UB6eeXjk-zOs5RW6WUEvTNXAUmkydg/edit?usp=sharing) | База лотов Ru сервера
+| Название                                                                                                           | Описание              |
+|--------------------------------------------------------------------------------------------------------------------|-----------------------|
+| [eu_storage](https://docs.google.com/spreadsheets/d/14GN4rECr8fTkYWvPXhe2OWjj1REvICKi175QJLmbjYk/edit?usp=sharing) | База лотов EU сервера |
+| [ru_storage](https://docs.google.com/spreadsheets/d/1zb_Vi1X_wjrg6UB6eeXjk-zOs5RW6WUEvTNXAUmkydg/edit?usp=sharing) | База лотов Ru сервера |
 
 12.11.2020
