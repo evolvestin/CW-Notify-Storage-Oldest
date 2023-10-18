@@ -188,7 +188,7 @@ def oldest(server):
                 with telegram_client:
                     telegram_client.loop.run_until_complete(handler(telegram_client, server))
             except IndexError and Exception:
-                Auth.thread_exec()
+                Auth.executive(None)
     else:
         s_name = 'Undefined'
         for name in server_dict:
