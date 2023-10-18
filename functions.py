@@ -401,12 +401,7 @@ class AuthCentre:
             error = ''
 
         if logs is None:
-            caller = inspect.currentframe().f_back.f_back
-            func_name = inspect.getframeinfo(caller)[2]
-            for a in caller.f_locals:
-                if a.startswith('host'):
-                    func_locals.append(caller.f_locals.get(a))
-            func = caller.f_locals.get(func_name, caller.f_globals.get(func_name))
+            pass
         else:
             retry = 0
         self.send_json(logs, name, error)
