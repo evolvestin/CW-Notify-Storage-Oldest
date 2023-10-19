@@ -100,7 +100,7 @@ async def handler(client: TelegramClient, server: dict) -> None:
     for message in messages:
         response = former(message)
     if response.startswith('False'):
-        await asyncio.sleep(8)
+        await asyncio.sleep(300)
     else:
         try:
             server['temp_worksheet'].update_cell(len(server['old_values']) + 1, 1, response)
@@ -110,7 +110,6 @@ async def handler(client: TelegramClient, server: dict) -> None:
             search_exceed = re.search('exceeds grid limits', str(error))
             if search_exceed:
                 worksheet_number = 0
-                await asyncio.sleep(100)
                 client = gspread.service_account(server['json1'])
                 temp_spreadsheet = client.open(temp_prefix + storage_name)
                 temp_values = temp_spreadsheet.worksheet('old').col_values(1)
@@ -132,14 +131,14 @@ async def handler(client: TelegramClient, server: dict) -> None:
                 client.del_spreadsheet(temp_spreadsheet.id)
                 Auth.edit_dev_message(dev_edited, italic('\n— Успешно'))
                 server['old_values'] = [response]
-                await asyncio.sleep(30)
+                await asyncio.sleep(60)
             else:
                 client = gspread.service_account(server['json1'])
                 server['temp_worksheet'] = client.open(temp_prefix + storage_name).worksheet('old')
                 server['temp_worksheet'].update_cell(len(server['old_values']) + 1, 1, response)
                 server['old_values'].append(response)
         server['old'] += 1
-        await asyncio.sleep(1.2)
+        await asyncio.sleep(8)
         objects.printer(f"{server['channel']}/{server['old']} Добавил в google старый лот")
 
 
