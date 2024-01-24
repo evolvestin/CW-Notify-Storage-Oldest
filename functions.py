@@ -4,7 +4,6 @@ import sys
 import time
 import base64
 import codecs
-import heroku3
 import asyncio
 import aiogram
 import _thread
@@ -21,8 +20,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from unidecode import unidecode
 
-host = 'Unknown'
-app_name = 'Undefined'
+host = 'server'
+app_name = 'oldest'
 log_file_name = 'log.txt'
 sql_patterns = ['database is locked', 'disk image is malformed', 'no such table']
 search_retry_pattern = r'Retry in (\d+) seconds|"Too Many Requests: retry after (\d+)"'
@@ -30,15 +29,6 @@ week = {'Mon': 'Пн', 'Tue': 'Вт', 'Wed': 'Ср', 'Thu': 'Чт', 'Fri': 'Пт
 search_major_fails_pattern = 'The (read|write) operation timed out|Backend Error|is currently unavailable.'
 search_minor_fails_pattern = 'Failed to establish a new connection|Read timed out.|ServerDisconnectedError' \
                              '|Message_id_invalid|Connection aborted'
-
-
-if os.environ.get('api'):
-    for app in heroku3.from_key(os.environ.get('api')).apps():
-        if app.name.endswith('first'):
-            host = 'One'
-        if app.name.endswith('second'):
-            host = 'Two'
-        app_name = re.sub('-first|-second', '', app.name, 1)
 
 
 def bold(text):
