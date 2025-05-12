@@ -39,7 +39,7 @@ def starting_server_dict_creation():
                         server_dict[resource[0]] = {}
                         search_json = re.search(resource[0] + r'_client(\d)\.json', server_json)
                         server_dict[resource[0]]['json' + search_json.group(1)] = server_json
-            if server_dict.get(resource[0]) is not None and option in ['channel', 'storage']:
+            if server_dict.get(resource[0]) is not None and option in ['auction_channel', 'worksheet_storage']:
                 server_dict[resource[0]][option] = resource[options.index(option)]
     if os.environ.get('local') is None:
         drive_client = Drive(json_list[0])
@@ -96,7 +96,7 @@ def create_temp_spreadsheet(client, spreadsheet_title, option=None):
 
 async def handler(client: TelegramClient, server: dict) -> None:
     response = 'False'
-    messages = await client.get_messages(server['channel'], ids=[server['old']])
+    messages = await client.get_messages(server['auction_channel'], ids=[server['old']])
     for message in messages:
         response = former(message)
     if response.startswith('False'):
@@ -106,7 +106,7 @@ async def handler(client: TelegramClient, server: dict) -> None:
             server['temp_worksheet'].update_cell(len(server['old_values']) + 1, 1, response)
             server['old_values'].append(response)
         except IndexError and Exception as error:
-            storage_name = server['storage']
+            storage_name = server['worksheet_storage']
             search_exceed = re.search('exceeds grid limits', str(error))
             if search_exceed:
                 worksheet_number = 0
@@ -139,7 +139,7 @@ async def handler(client: TelegramClient, server: dict) -> None:
                 server['old_values'].append(response)
         server['old'] += 1
         await asyncio.sleep(8)
-        objects.printer(f"{server['channel']}/{server['old']} Добавил в google старый лот")
+        objects.printer(f"{server['auction_channel']}/{server['old']} Добавил в google старый лот")
 
 
 def oldest(server):
@@ -150,7 +150,7 @@ def oldest(server):
     server['temp_worksheet'] = None
     client = gspread.service_account(server['json1'])
     for s in client.list_spreadsheet_files():
-        if s['name'] in [i + server['storage'] for i in ['', temp_prefix]]:
+        if s['name'] in [i + server['worksheet_storage'] for i in ['', temp_prefix]]:
             spreadsheet = client.open(s['name'])
             last_worksheet = None
             last_worksheet_id = 1
@@ -167,7 +167,7 @@ def oldest(server):
                 spreadsheet_files.append(s['name'])
             if last_worksheet:
                 values = last_worksheet.col_values(1)
-                if s['name'] == temp_prefix + server['storage']:
+                if s['name'] == temp_prefix + server['worksheet_storage']:
                     server['temp_worksheet'] = last_worksheet
                     server['old_values'] = values
                 for value in values:
@@ -178,8 +178,8 @@ def oldest(server):
     if server['old'] and spreadsheet_files:
         server['old'] += 1
         asyncio.set_event_loop(asyncio.new_event_loop())
-        if temp_prefix + server['storage'] not in spreadsheet_files:
-            create_temp_spreadsheet(client, server['storage'])
+        if temp_prefix + server['worksheet_storage'] not in spreadsheet_files:
+            create_temp_spreadsheet(client, server['worksheet_storage'])
         telegram_client = TelegramClient(
             os.environ['session'], int(os.environ['api_id']), os.environ['api_hash']).start()
         while True:
