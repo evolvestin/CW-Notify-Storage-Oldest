@@ -1,5 +1,5 @@
 gspread==3.6.0
-requests==2.20.0
+requests==2.32.4
 Telethon==1.28.5
 Unidecode==1.2.0
 pyTelegramBotAPI==4.22.1
