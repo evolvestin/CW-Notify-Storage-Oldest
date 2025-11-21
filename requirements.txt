@@ -1,8 +1,7 @@
-aiogram~=2.20
-gspread>=3.6.0
-requests>=2.20.0
-e-objects>=1.2.0
-beautifulsoup4~=4.9.3
+gspread==3.6.0
+requests==2.20.0
 Telethon==1.28.5
-heroku3~=5.1.4
-Unidecode~=1.2.0
+Unidecode==1.2.0
+pyTelegramBotAPI==4.22.1
+google-api-python-client==1.10.0
+google-auth==2.14.1

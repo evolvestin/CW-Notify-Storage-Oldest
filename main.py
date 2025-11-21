@@ -1,33 +1,27 @@
-# -*- coding: utf-8 -*-
+import asyncio
+import json
 import os
 import re
-import glob
-import asyncio
-import gspread
-import _thread
-from GDrive import Drive
-from aiogram import types
-import functions as objects
-from aiogram.utils import executor
-from functions import italic, stamper
-from telethon.sync import TelegramClient, types as telethon_types
-from aiogram.dispatcher import Dispatcher
-if __name__ == '__main__':
-    import environ
-    print('Запуск с окружением', environ.environ)
+import threading
+import time
 
-stamp1 = objects.time_now()
-objects.environmental_files()
+import gspread
+from telethon.sync import TelegramClient
+from telethon.sync import types as telethon_types
+
+import functions as objects
+from functions import italic, stamper
+from GDrive import Drive
+
 temp_prefix = 'temp-'
 server_dict = {}
-idMe = 396978030
 limit = 50000
 # =====================================================================================================================
 
 
 def starting_server_dict_creation():
     global server_dict
-    json_list = glob.glob('*.json')
+    json_list = objects.environmental_files()
     client = gspread.service_account(json_list[0])
     resources = client.open('Notify').worksheet('resources').get('A1:Z50000', major_dimension='COLUMNS')
     options = resources.pop(0)
@@ -39,19 +33,22 @@ def starting_server_dict_creation():
                         server_dict[resource[0]] = {}
                         search_json = re.search(resource[0] + r'_client(\d)\.json', server_json)
                         server_dict[resource[0]]['json' + search_json.group(1)] = server_json
-            if server_dict.get(resource[0]) is not None and option in ['auction_channel', 'worksheet_storage']:
+            if server_dict.get(resource[0]) is not None and option in [
+                'auction_channel',
+                'worksheet_storage',
+            ]:
                 server_dict[resource[0]][option] = resource[options.index(option)]
     if os.environ.get('local') is None:
-        drive_client = Drive(json_list[0])
+        with open(json_list[0], 'r') as file:
+            drive_client = Drive(json.load(file))
         for file in drive_client.files():
-            if file['name'] == f"{os.environ['session']}.session":
+            if file['name'] == f'{os.environ["session"]}.session':
                 drive_client.download_file(file['id'], file['name'])
 
 
 Auth = objects.AuthCentre(os.environ['TOKEN'])
-bot = Auth.start_main_bot('async')
+bot = Auth.start_main_bot()
 starting_server_dict_creation()
-dispatcher = Dispatcher(bot)
 # =====================================================================================================================
 
 
@@ -64,20 +61,8 @@ def former(message: telethon_types.Message):
     if message and message.id and message.message and message.date:
         stamp = stamper(str(message.date), '%Y-%m-%d %H:%M:%S+00:00')
         if stamp <= objects.time_now() - 24 * 60 * 60:
-            response = f"{message.id}/{re.sub('/', '&#47;', message.message)}".replace('\n', '/')
+            response = f'{message.id}/{re.sub("/", "&#47;", message.message)}'.replace('\n', '/')
     return response
-
-
-@dispatcher.message_handler()
-async def repeat_all_messages(message: types.Message):
-    if message['chat']['id'] != idMe:
-        await bot.send_message(message['chat']['id'], 'К тебе этот бот не имеет отношения, уйди пожалуйста')
-    else:
-        if message.text.startswith('/log'):
-            doc = open('log.txt', 'rt')
-            await bot.send_document(idMe, doc, reply_markup=None)
-        else:
-            await bot.send_message(message['chat']['id'], 'Я работаю', reply_markup=None)
 
 
 def create_temp_spreadsheet(client, spreadsheet_title, option=None):
@@ -114,7 +99,7 @@ async def handler(client: TelegramClient, server: dict) -> None:
                 temp_spreadsheet = client.open(temp_prefix + storage_name)
                 temp_values = temp_spreadsheet.worksheet('old').col_values(1)
 
-                dev = Auth.send_dev_message('Устраняем таблицу', tag=italic)
+                dev = Auth.send_dev_message('Removing table', tag=italic)
                 main_spreadsheet = client.open(storage_name)
                 for w in main_spreadsheet.worksheets():
                     if number_secure(w.title):
@@ -122,14 +107,12 @@ async def handler(client: TelegramClient, server: dict) -> None:
                         if int(title) > worksheet_number:
                             worksheet_number = int(title)
                 main_worksheet = main_spreadsheet.add_worksheet(str(worksheet_number + 1), limit, 1)
-                main_spreadsheet.batch_update(
-                    objects.properties_json(main_worksheet.id, limit, temp_values))
+                main_spreadsheet.batch_update(objects.properties_json(main_worksheet.id, limit, temp_values))
 
-                dev_edited = Auth.edit_dev_message(dev, italic('\n— Новая: ' + storage_name +
-                                                               '/' + str(worksheet_number + 1)))
+                dev_edited = Auth.edit_dev_message(dev, italic(f'\n— New: {storage_name}/{worksheet_number + 1}'))
                 create_temp_spreadsheet(client, storage_name, [response])
                 client.del_spreadsheet(temp_spreadsheet.id)
-                Auth.edit_dev_message(dev_edited, italic('\n— Успешно'))
+                Auth.edit_dev_message(dev_edited, italic('\n— Success'))
                 server['old_values'] = [response]
                 await asyncio.sleep(60)
             else:
@@ -137,13 +120,13 @@ async def handler(client: TelegramClient, server: dict) -> None:
                 server['temp_worksheet'] = client.open(temp_prefix + storage_name).worksheet('old')
                 server['temp_worksheet'].update_cell(len(server['old_values']) + 1, 1, response)
                 server['old_values'].append(response)
+        objects.printer(f'{server["auction_channel"]}/{server["old"]} Added old lot to google')
         server['old'] += 1
         await asyncio.sleep(8)
-        objects.printer(f"{server['auction_channel']}/{server['old']} Добавил в google старый лот")
 
 
 def oldest(server):
-    objects.printer(f'Сервер {server}')
+    objects.printer(f'Server {server}')
     server['old'] = 0
     spreadsheet_files = []
     server['old_values'] = []
@@ -181,7 +164,8 @@ def oldest(server):
         if temp_prefix + server['worksheet_storage'] not in spreadsheet_files:
             create_temp_spreadsheet(client, server['worksheet_storage'])
         telegram_client = TelegramClient(
-            os.environ['session'], int(os.environ['api_id']), os.environ['api_hash']).start()
+            os.environ['session'], int(os.environ['api_id']), os.environ['api_hash']
+        ).start()
         while True:
             try:
                 with telegram_client:
@@ -193,14 +177,22 @@ def oldest(server):
         for name in server_dict:
             if server_dict[name] == server:
                 s_name = name
-        Auth.send_dev_message('Нет подключения к google.\nНе запущен CW-Notify-Storage-Oldest(' + s_name + ')')
+        Auth.send_dev_message('No connection to google.\nCW-Notify-Storage-Oldest not started (' + s_name + ')')
 
 
 def start():
-    Auth.start_message(stamp1)
+    Auth.start_message()
+    threads = []
     for value in server_dict.values():
-        _thread.start_new_thread(oldest, (value,))
-    executor.start_polling(dispatcher)
+        thread = threading.Thread(target=oldest, args=(value,))
+        thread.start()
+        threads.append(thread)
+
+    while True:
+        time.sleep(100)
+        for thread in threads:
+            if not thread.is_alive():
+                os._exit(1)
 
 
 if __name__ == '__main__':
