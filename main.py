@@ -166,12 +166,13 @@ def oldest(server):
         telegram_client = TelegramClient(
             os.environ['session'], int(os.environ['api_id']), os.environ['api_hash']
         ).start()
-        while True:
-            try:
-                with telegram_client:
+        with telegram_client:
+            while True:
+                try:
                     telegram_client.loop.run_until_complete(handler(telegram_client, server))
-            except IndexError and Exception:
-                Auth.executive(None)
+                except IndexError and Exception:
+                    Auth.executive(None)
+                    time.sleep(10)
     else:
         s_name = 'Undefined'
         for name in server_dict:
